@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>OBD Live</title>
+  <style>
+    :root { --card-b: #ddd; --muted:#666; }
+    body{font-family:system-ui,Arial;margin:20px}
+    h1{margin:0 0 12px}
+    .grid{display:flex;flex-wrap:wrap;gap:12px}
+    .card{border:1px solid var(--card-b);border-radius:12px;padding:16px;min-width:240px;flex:0 0 auto}
+    .k{color:var(--muted);font-size:12px;margin-bottom:6px}
+    #ts{margin-bottom:12px}
+    .dtc-box{
+      margin-top:24px;border:2px solid var(--card-b);border-radius:12px;padding:16px;
+    }
+    .row{display:flex;gap:16px;flex-wrap:wrap}
+    .pill{display:inline-block;border:1px solid var(--card-b);border-radius:999px;padding:4px 10px;margin:2px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .pill.ok{opacity:0.6}
+    .section-title{margin:0 0 8px;font-size:16px}
+    button{border:1px solid var(--card-b);background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer}
+    button:hover{background:#f7f7f7}
+    .footer-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .muted{color:var(--muted);font-size:12px}
+  </style>
+</head>
+<body>
+  <h1>OBD Live Dashboard</h1>
+  <div id="ts" class="muted">—</div>
+
+  <div class="grid">
+    <div class="card"><div class="k">VIN</div><div id="vin">—</div></div>
+    <div class="card"><div class="k">RPM</div><div id="rpm">—</div></div>
+    <div class="card"><div class="k">Speed (km/h)</div><div id="speed_kph">—</div></div>
+    <div class="card"><div class="k">Coolant (°C)</div><div id="coolant_c">—</div></div>
+    <div class="card"><div class="k">Intake Air (°C)</div><div id="intake_air_c">—</div></div>
+    <div class="card"><div class="k">MAF (g/s)</div><div id="maf_gps">—</div></div>
+    <div class="card"><div class="k">Fuel Level (%)</div><div id="fuel_level_pct">—</div></div>
+    <div class="card"><div class="k">Engine Load (%)</div><div id="engine_load_pct">—</div></div>
+    <div class="card"><div class="k">Throttle (%)</div><div id="throttle_pct">—</div></div>
+    <div class="card"><div class="k">MAP (kPa)</div><div id="map_kpa">—</div></div>
+    <div class="card"><div class="k">BARO (kPa)</div><div id="baro_kpa">—</div></div>
+    <div class="card"><div class="k">Timing Advance (°)</div><div id="timing_advance_deg">—</div></div>
+  </div>
+
+  <!-- Trouble Codes box at the bottom -->
+  <div class="dtc-box" id="dtc-wrapper">
+    <div class="footer-row">
+      <h2 class="section-title">Trouble Codes</h2>
+      <div>
+        <button onclick="refreshDTCs()">Refresh</button>
+        <span class="muted" id="dtc-updated">—</span>
+      </div>
+    </div>
+    <div id="dtc-content">
+      <div class="muted">Loading trouble codes…</div>
+    </div>
+  </div>
+
+<script>
+function setText(id, value){
+  const el = document.getElementById(id);
+  if(!el) return;
+  // keep a bit of formatting nice for floats
+  if (typeof value === 'number' && !Number.isInteger(value)) {
+    el.textContent = value.toFixed(2);
+  } else {
+    el.textContent = (value ?? '—');
+  }
+}
+
+function updateLive(s){
+  // Timestamp
+  setText('ts', s.ts || '—');
+
+  // Known keys we render; missing keys stay as "—"
+  const keys = ['vin','rpm','speed_kph','coolant_c','intake_air_c','maf_gps','fuel_level_pct',
+                'engine_load_pct','throttle_pct','map_kpa','baro_kpa','timing_advance_deg'];
+  for(const k of keys){
+    if (k in s) setText(k, s[k]);
+  }
+}
+
+// WebSocket for fast live updates
+(function(){
+  const wsUrl = `ws://${location.host}/ws`;
+  try{
+    const ws = new WebSocket(wsUrl);
+    ws.onmessage = (e)=>updateLive(JSON.parse(e.data));
+    ws.onopen=()=>console.log('ws open');
+    ws.onerror=()=>{console.log('ws error; fallback to polling'); startLivePolling();};
+    ws.onclose=()=>{startLivePolling();};
+  }catch(e){
+    startLivePolling();
+  }
+})();
+
+function startLivePolling(){
+  setInterval(async ()=>{
+    try{
+      const r = await fetch('/api/live');
+      updateLive(await r.json());
+    }catch(_e){}
+  }, 500);
+}
+
+// DTCs: fetch and render
+async function refreshDTCs(){
+  try{
+    const r = await fetch('/api/dtc');
+    const d = await r.json();
+    renderDTCs(d);
+    const stamp = new Date().toLocaleTimeString();
+    document.getElementById('dtc-updated').textContent = `Updated ${stamp}`;
+  }catch(e){
+    document.getElementById('dtc-content').innerHTML = `<div class="muted">Failed to load DTCs</div>`;
+  }
+}
+
+function renderDTCs(d){
+  const wrap = document.getElementById('dtc-content');
+  function pills(arr){
+    if(!arr || arr.length===0) return '<span class="pill ok">None</span>';
+    return arr.map(c=>`<span class="pill">${c}</span>`).join(' ');
+  }
+  wrap.innerHTML = `
+    <div class="row">
+      <div>
+        <div class="k">Stored</div>
+        <div>${pills(d.stored)}</div>
+      </div>
+      <div>
+        <div class="k">Pending</div>
+        <div>${pills(d.pending)}</div>
+      </div>
+      <div>
+        <div class="k">Permanent</div>
+        <div>${pills(d.permanent)}</div>
+      </div>
+    </div>
+  `;
+}
+
+// Initial + periodic refresh of DTCs
+refreshDTCs();
+setInterval(refreshDTCs, 5000);
+</script>
+</body>
+</html>

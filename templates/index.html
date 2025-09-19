@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Dirty Motors OBD Monitor</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <!-- Brand banner -->
+  <div class="brand-banner" role="banner">
+    <div class="brand-inner">
+      <img
+        src="/static/images/cartoon-broken-car.png"
+        alt="Cartoon broken-down car with an old man driving"
+        class="brand-car-img"
+        loading="eager"
+        fetchpriority="high"
+      />
+      <div class="brand-copy">
+        <div class="brand-kicker">Garage Tools</div>
+        <h1 class="brand-title">Dirty Motors</h1>
+        <div class="brand-tag">OBD diagnostics • recording • replay • freeze frames</div>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <div class="left">
+      <form method="post" action="/set-vehicle">
+        <label>Vehicle</label>
+        <select name="vehicle" onchange="this.form.submit()">
+          {% for key,label in vehicles %}
+          <option value="{{key}}" {% if state.vehicle==key %}selected{% endif %}>{{label}}</option>
+          {% endfor %}
+        </select>
+      </form>
+
+      <form method="post" action="/set-protocol" style="margin-left:10px;">
+        <label>Protocol</label>
+        <select name="protocol" onchange="this.form.submit()">
+          {% for key,label in protocols %}
+          <option value="{{key}}" {% if state.protocol==key %}selected{% endif %}>{{label}}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+
+    <div class="right">
+      <button onclick="toggleSidebar()">Select PIDs</button>
+      <span class="muted">Supported: <span id="suppCount">{{state.supported_count or 0}}</span></span>
+    </div>
+  </header>
+
+  <main>
+    <div id="cards" class="cards"></div>
+
+    <section class="dtc">
+      <h2>DTC</h2>
+      <div id="milLine" class="muted">MIL: — • ECU-reported DTC count: —</div>
+      <div class="dtc-cols">
+        <div><h3>Stored (03)</h3><div id="dtc-stored" class="dtc-list">None</div></div>
+        <div><h3>Pending (07)</h3><div id="dtc-pending" class="dtc-list">None</div></div>
+        <div><h3>Permanent (0A)</h3><div id="dtc-permanent" class="dtc-list">None</div></div>
+      </div>
+      <div id="ff"></div>
+    </section>
+  </main>
+
+  <!-- Sidebar: Dynamic PID picker -->
+  <aside id="sidebar" style="display:none;">
+    <div class="sidebar-header">
+      <h3>Select PIDs</h3>
+      <input id="pidSearch" type="text" placeholder="Search… (e.g., RPM, FUEL)" oninput="filterPIDList()" />
+    </div>
+    <div id="pid-list" class="pid-list"></div>
+    <div class="sidebar-actions">
+      <button onclick="selectAllVisible()">Select all</button>
+      <button onclick="clearAllVisible()">Clear visible</button>
+      <div class="spacer"></div>
+      <button onclick="savePIDs()">Save</button>
+      <button class="secondary" onclick="toggleSidebar()">Close</button>
+    </div>
+  </aside>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

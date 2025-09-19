@@ -1,0 +1,5 @@
+Flask==3.0.3
+obd==0.7.3
+SQLAlchemy==2.0.32
+pyserial>=3.5
+

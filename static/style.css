@@ -1,0 +1,195 @@
+:root{
+  --bg: #0b0f14;
+  --panel: #111822;
+  --card: #0f1722;
+  --muted: #7b8aa3;
+  --text: #e8eef7;
+  --accent: #4ea0ff;
+  --accent-2: #7dd3fc;
+  --ok: #1fbf75;
+  --err: #ff5d5d;
+  --border: #1f2a3a;
+  --shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background: radial-gradient(1200px 800px at 10% -10%, rgba(78,160,255,.08), transparent 60%),
+              radial-gradient(1000px 1000px at 110% -20%, rgba(125,211,252,.06), transparent 60%),
+              var(--bg);
+  color:var(--text);
+  font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+}
+
+/* Header */
+header{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px; padding:12px 16px;
+  background: rgba(11,15,20,.6); backdrop-filter: blur(8px);
+  border-bottom:1px solid var(--border);
+}
+header .left, header .right{display:flex; align-items:center; gap:12px}
+label{opacity:.9; margin-right:6px}
+select{
+  appearance:none; background:var(--panel); color:var(--text);
+  border:1px solid var(--border); border-radius:10px; padding:8px 30px 8px 10px;
+  outline:none; box-shadow: var(--shadow);
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+                    linear-gradient(135deg, var(--muted) 50%, transparent 50%),
+                    linear-gradient(to right, var(--panel), var(--panel));
+  background-position: calc(100% - 18px) 14px, calc(100% - 12px) 14px, 100% 0;
+  background-size: 6px 6px, 6px 6px, 2.5rem 100%;
+  background-repeat: no-repeat;
+}
+
+/* Buttons */
+button{
+  background: linear-gradient(180deg, var(--accent), #2b6cb0);
+  color:#fff; border:none; padding:9px 14px; border-radius:12px;
+  cursor:pointer; box-shadow: var(--shadow); font-weight:600;
+  transition: transform .06s ease, filter .2s ease, box-shadow .2s ease;
+}
+button:hover{filter:brightness(1.05)}
+button:active{transform: translateY(1px)}
+button.secondary{
+  background: none; border:1px solid var(--border); color:var(--text);
+}
+
+/* Content */
+main{padding:16px; max-width:1200px; margin:0 auto}
+.muted{color:var(--muted)}
+
+/* Cards grid */
+.cards{
+  display:grid; gap:12px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.card{
+  background: linear-gradient(180deg, rgba(78,160,255,.06), transparent 35%), var(--card);
+  border:1px solid var(--border); border-radius:16px; padding:14px 14px 12px;
+  box-shadow: var(--shadow);
+}
+.card .label{color:var(--muted); font-weight:600; letter-spacing:.02em}
+.card .value{font-size:22px; font-weight:700; margin-top:4px}
+
+/* Pills */
+.pill{
+  display:inline-block; padding:6px 10px; border-radius:999px; font-weight:700;
+  color:#0b141f; background: linear-gradient(180deg, #b8f5d7, #79e8b0);
+  border:1px solid rgba(0,0,0,.15); margin-top:8px;
+}
+.pill.err{ color:#fff; background: linear-gradient(180deg, #ff7a7a, #e84d4d);}
+
+/* DTC Section */
+section.dtc{margin-top:26px}
+section.dtc h2{margin:0 0 6px}
+.dtc-cols{display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr))}
+.dtc-list{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:10px;
+  min-height:54px;
+}
+.dtc-row{padding:6px 8px; border-radius:8px}
+.dtc-row:hover{background-color:#0e1520}
+.dtc-row .code{color:var(--accent-2)}
+
+/* Freeze frame box */
+.ff{margin-top:12px; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:10px}
+
+/* Sidebar (PID picker) */
+aside#sidebar{
+  position:fixed; top:0; right:0; height:100vh; width:380px;
+  background: rgba(15,23,34,.92); backdrop-filter: blur(10px);
+  border-left:1px solid var(--border); box-shadow: -12px 0 24px rgba(0,0,0,.35);
+  padding:14px; z-index:60; overflow:auto;
+}
+.sidebar-header{position:sticky; top:0; background:inherit; padding-bottom:10px}
+.sidebar-header h3{margin:6px 0 8px}
+#pidSearch{
+  width:100%; padding:10px 12px; border-radius:10px;
+  background:var(--card); color:var(--text);
+  border:1px solid var(--border); outline:none;
+}
+.pid-list{margin-top:10px; display:flex; flex-direction:column; gap:6px}
+.chk{display:flex; align-items:center; gap:8px; cursor:pointer}
+.chk input{transform: translateY(1px)}
+.chk.wide{padding:8px; border-radius:10px; border:1px solid transparent}
+.chk.wide:hover{border-color:var(--border); background:#0e1520}
+
+.sidebar-actions{
+  position:sticky; bottom:0; background:inherit; padding-top:10px; margin-top:12px;
+  display:flex; gap:8px; align-items:center;
+}
+.sidebar-actions .spacer{flex:1}
+
+/* Forms */
+form{display:inline-flex; align-items:center}
+
+/* Links reset */
+a{color:var(--accent)}
+
+/* ===== Brand Banner ===== */
+/* ===== Brand Banner (Option A) ===== */
+.brand-banner{
+  background:
+    radial-gradient(900px 300px at 15% 0%, rgba(78,160,255,.18), transparent 60%),
+    radial-gradient(700px 300px at 85% 0%, rgba(125,211,252,.14), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.06));
+  border-bottom: 1px solid var(--border);
+  padding: 18px 16px;
+}
+
+.brand-inner{
+  max-width: 1200px; margin: 0 auto;
+  display: grid; align-items: center; gap: 16px;
+  grid-template-columns: 180px 1fr;    /* image | text */
+}
+
+/* Image: pop it off the background and keep it tidy */
+.brand-car-img{
+  width: 100%; height: auto; max-width: 180px;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.5));
+  transform: translateY(2px);
+  /* Optional: subtle lift on hover
+  transition: transform .15s ease;
+  }
+  .brand-car-img:hover{ transform: translateY(0); }
+  */
+}
+
+.brand-copy .brand-kicker{
+  color: var(--accent-2); font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase; font-size: 11px;
+}
+
+.brand-title{
+  margin: 4px 0 4px;
+  font-size: 36px; line-height: 1.1; font-weight: 900;
+  letter-spacing: .5px;
+  color: var(--text);
+  text-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+
+.brand-tag{ color: var(--muted); }
+
+/* Small screens */
+@media (max-width: 640px){
+  .brand-inner{ grid-template-columns: 120px 1fr; gap: 12px; }
+  .brand-title{ font-size: 26px; }
+  .brand-car-img{ max-width: 120px; }
+}
+
+/* Optional: tone-match if the PNG background isn’t transparent
+   (uncomment to add a faint overlay that helps it blend) */
+
+.brand-car-img{
+  position: relative;
+  isolation: isolate;
+}
+.brand-car-img::after{
+  content:""; position:absolute; inset:0;
+  background: radial-gradient(closest-side, rgba(255,255,255,.05), transparent 70%);
+  pointer-events:none; border-radius: 12px;
+}
