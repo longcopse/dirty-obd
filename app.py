@@ -4,7 +4,12 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime, timezone
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from sqlalchemy import create_engine, text
-from sampler import OBDWorker, ReplayWorker, load_dtc_descriptions
+
+# Import helpers + workers from sampler
+from sampler import (
+    OBDWorker, ReplayWorker, load_dtc_descriptions,
+    enumerate_python_obd_protocols
+)
 
 BASE_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -29,15 +34,8 @@ SAMPLE_INTERVAL = float(os.environ.get("SAMPLE_INTERVAL", "1.0"))
 OBD_TIMEOUT     = float(os.environ.get("OBD_TIMEOUT", "2.5"))
 DTC_DEBOUNCE    = int(os.environ.get("DTC_DEBOUNCE", "3"))
 
-PROTOCOLS = [
-    ("AUTO",                 "Auto-detect"),
-    ("ISO_15765_4_CAN",      "ISO 15765-4 CAN (11-bit 500k)"),
-    ("ISO_15765_4_CANB",     "ISO 15765-4 CAN (29-bit 500k)"),
-    ("ISO_9141_2",           "ISO 9141-2"),
-    ("ISO_14230_4_KWP",      "ISO 14230-4 KWP2000"),
-    ("SAE_J1850_PWM",        "SAE J1850 PWM (Ford)"),
-    ("SAE_J1850_VPW",        "SAE J1850 VPW (GM)")
-]
+# Dynamic protocols: advertise everything this build supports (plus AUTO)
+PROTOCOLS = enumerate_python_obd_protocols()  # list of (key, label)
 
 # ---- DB ----
 DB_URL = f"sqlite:///{os.path.join(DATA_DIR, 'obd.sqlite')}"
@@ -191,7 +189,9 @@ _start_obd_worker()
 @app.get("/")
 def index():
     with state_lock: s = dict(shared_state)
-    return render_template("index.html", state=s, vehicles=VEHICLES, protocols=PROTOCOLS)
+    # Recompute PROTOCOLS each render (in case python-OBD gets upgraded)
+    protocols = enumerate_python_obd_protocols()
+    return render_template("index.html", state=s, vehicles=VEHICLES, protocols=protocols)
 
 @app.post("/set-vehicle")
 def set_vehicle():
@@ -217,6 +217,8 @@ def api_state():
         s["dtc_list_stored"]    = _desc_list(s.get("dtcs_stored", []))
         s["dtc_list_pending"]   = _desc_list(s.get("dtcs_pending", []))
         s["dtc_list_permanent"] = _desc_list(s.get("dtcs_permanent", []))
+        # surface protocol options to SPA dashboards, etc.
+        s["available_protocols"] = enumerate_python_obd_protocols()
     return jsonify(s)
 
 @app.post("/set-pids")
@@ -242,8 +244,6 @@ def set_pids():
         return jsonify({"ok": True, "selected_pids": selected})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 400
-
-# Minimal record/replay endpoints (unchanged in spirit). Omitted for brevity.
 
 @app.post("/shutdown")
 def shutdown():
